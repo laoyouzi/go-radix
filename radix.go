@@ -56,26 +56,40 @@ func (n *node) updateEdge(label byte, node *node) {
 	panic("replacing missing edge")
 }
 
+// ponytail: 边数通常很小；0/1 条边走 fast path。
 func (n *node) getEdge(label byte) *node {
-	num := len(n.edges)
-	idx := sort.Search(num, func(i int) bool {
-		return n.edges[i].label >= label
-	})
-	if idx < num && n.edges[idx].label == label {
-		return n.edges[idx].node
+	edges := n.edges
+	switch len(edges) {
+	case 0:
+		return nil
+	case 1:
+		if edges[0].label == label {
+			return edges[0].node
+		}
+		return nil
+	}
+	for i := range edges {
+		if edges[i].label == label {
+			return edges[i].node
+		}
+		if edges[i].label > label {
+			break
+		}
 	}
 	return nil
 }
 
 func (n *node) delEdge(label byte) {
-	num := len(n.edges)
-	idx := sort.Search(num, func(i int) bool {
-		return n.edges[i].label >= label
-	})
-	if idx < num && n.edges[idx].label == label {
-		copy(n.edges[idx:], n.edges[idx+1:])
-		n.edges[len(n.edges)-1] = edge{}
-		n.edges = n.edges[:len(n.edges)-1]
+	for i := range n.edges {
+		if n.edges[i].label == label {
+			copy(n.edges[i:], n.edges[i+1:])
+			n.edges[len(n.edges)-1] = edge{}
+			n.edges = n.edges[:len(n.edges)-1]
+			return
+		}
+		if n.edges[i].label > label {
+			return
+		}
 	}
 }
 

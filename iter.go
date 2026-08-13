@@ -1,18 +1,25 @@
 package radix
 
 import (
-	"sort"
 	"strings"
 )
 
 // getLowerBoundEdge returns the edge with label >= the given label.
 func (n *node) getLowerBoundEdge(label byte) (int, *node) {
-	num := len(n.edges)
-	idx := sort.Search(num, func(i int) bool {
-		return n.edges[i].label >= label
-	})
-	if idx < num {
-		return idx, n.edges[idx].node
+	edges := n.edges
+	switch len(edges) {
+	case 0:
+		return -1, nil
+	case 1:
+		if edges[0].label >= label {
+			return 0, edges[0].node
+		}
+		return -1, nil
+	}
+	for i := range edges {
+		if edges[i].label >= label {
+			return i, edges[i].node
+		}
 	}
 	return -1, nil
 }
